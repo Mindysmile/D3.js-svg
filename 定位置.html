@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        #div1{width:780px;height:400px;background:url("img/bg.jpg") no-repeat;margin:20px auto;overflow: hidden;}
+        body{background:black;}
+    </style>
+</head>
+<body>
+<div id="div1">
+
+</div>
+<script>
+    var svgNS='http://www.w3.org/2000/svg';
+    var parent=document.getElementById('div1');
+    var centerx=parent.offsetWidth/2;
+    var centery=parent.offsetHeight/2;
+    var arrnum=9;
+    var anglenum=360/arrnum;
+    var r=150;
+    var datanode=[];
+    for(var i=0;i<arrnum;i++){
+        var sinx=Math.sin(i*anglenum*Math.PI/180)*r+centerx;
+        var siny=Math.cos(i*anglenum*Math.PI/180)*r+centery;
+        datanode.push({x:sinx,y:siny,text:i});
+    }
+    function createTag(tag,objAttr){
+        var tag=document.createElementNS(svgNS,tag);
+        for(var attr in objAttr){
+            tag.setAttribute(attr,objAttr[attr]);
+        }
+        return tag;
+    }
+
+    var data={
+        centerNode:{text:'Mindy'},
+        otherNode:datanode
+
+    };
+    function addTag(){
+
+
+        var svg=createTag('svg',{'xmlns':svgNS,'width':'100%','height':'100%'});
+        for(var i=0;i<data.otherNode.length;i++){
+            addOtherNode(data.otherNode[i],svg);
+        }
+        var g=createTag('g',{'style':'cursor:pointer'});
+        var circle=createTag('circle',{'cx':centerx,'cy':centery,'r':'50','fill':'white','stroke':'blue','stroke-width':'3'} );
+        var oText=createTag('text',{'x':centerx,'y':centery+8,'font-size':'20','text-anchor':'middle'});
+        oText.innerHTML=data.centerNode.text;
+        g.appendChild(circle);
+        g.appendChild(oText);
+        svg.appendChild(g);
+        parent.appendChild(svg);
+    }
+    addTag();
+    function addOtherNode(otherAttr,svg){
+        var oG = createTag('g',{'style':'cursor:pointer','class':'linestyle'});
+        var oLine1 = createTag('line',{'x1':otherAttr.x,'y1':otherAttr.y,'x2':centerx,'y2':centery,'stroke':'#ccc'});
+        var oLine2 = createTag('line',{'x1':otherAttr.x,'y1':otherAttr.y,'x2':centerx,'y2':centery,'stroke':'transparent','stroke-width':'10'});
+        var oRect = createTag('rect',{'x': (otherAttr.x + centerx)/2 - 10 ,'y': (otherAttr.y + centery)/2 - 10 ,'fill':'#999','width':'20','height':'20','rx':'5'});
+        var oText = createTag('text',{'x':(otherAttr.x + centerx)/2,'y':(otherAttr.y + centery)/2 + 8,'fill':'white','font-size':'20','text-anchor':'middle'});
+        oText.innerHTML = '?';
+
+        oG.appendChild(oLine1);
+        oG.appendChild(oLine2);
+        oG.appendChild(oRect);
+        oG.appendChild(oText);
+
+        svg.appendChild(oG);
+
+
+        var oG = createTag('g',{'style':'cursor:pointer','class':'circlestyle'});
+        var oCircle = createTag('circle',{'cx':otherAttr.x,'cy':otherAttr.y,'r':'30','fill':'white','stroke':'red','stroke-width':'1'});
+        var oText = createTag('text',{'x':otherAttr.x,'y':otherAttr.y+8,'font-size':'20','text-anchor':'middle'});
+        oText.innerHTML = otherAttr.text;
+
+        oG.appendChild(oCircle);
+        oG.appendChild(oText);
+
+        svg.appendChild(oG);
+    }
+    bind();
+    function bind(){
+        var linestyle=document.getElementsByClassName('linestyle');
+        var  circlestyle=document.getElementsByClassName('circlestyle');
+        for(var i=0;i<linestyle.length;i++){
+            linestyle[i].onmouseenter=function(){
+
+               this.getElementsByTagName('line')[0].setAttribute('stroke','blue');
+               this.getElementsByTagName('rect')[0].setAttribute('fill','red');
+                var nextCircle=this.nextElementSibling;
+                startmove(nextCircle.getElementsByTagName('circle')[0],30,40);
+            }
+            linestyle[i].onmouseleave=function(){
+
+
+
+                this.getElementsByTagName('line')[0].setAttribute('stroke','#ccc');
+                this.getElementsByTagName('rect')[0].setAttribute('fill','#999');
+                var nextCircle=this.nextElementSibling;
+                startmove(nextCircle.getElementsByTagName('circle')[0],40,30);
+            }
+        }
+        for(var i=0;i<circlestyle.length;i++){
+            circlestyle[i].onmouseenter=function(){
+                startmove(this.getElementsByTagName('circle')[0],30,40);
+               // startmove(this.getElementsByTagName('circle')[0],30,40);
+                var prevLine=this.previousElementSibling;
+                prevLine.getElementsByTagName('line')[0].setAttribute('stroke','blue');
+                prevLine.getElementsByTagName('rect')[0].setAttribute('fill','red');
+            }
+            circlestyle[i].onmouseleave=function(){
+                startmove(this.getElementsByTagName('circle')[0],40,30);
+                // startmove(this.getElementsByTagName('circle')[0],30,40);
+                var prevLine=this.previousElementSibling;
+                prevLine.getElementsByTagName('line')[0].setAttribute('stroke','#ccc');
+                prevLine.getElementsByTagName('rect')[0].setAttribute('fill','#999');
+            }
+        }
+    }
+    function startmove(obj,r1,r2){
+        var pre=r1;
+        var now=r2;
+        obj.speed=0;
+        clearInterval(obj.timer);
+        obj.timer=setInterval(function(){
+            obj.speed=(now-pre)/6;
+            obj.speed*=0.9;
+            if(Math.abs(now-pre)<=1&&Math.abs(obj.speed)<=1){ //距离绝对值和速度绝对值<=1
+                clearInterval(obj.timer);
+                obj.setAttribute('r',now);
+            }
+            else{
+                pre+=obj.speed;
+                obj.setAttribute('r',pre);
+            }
+        },30);
+    }
+</script>
+</body>
+</html>
